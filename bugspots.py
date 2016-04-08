@@ -154,10 +154,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     b = Bugspots(depth=args.depth, grep=args.grep)
-    print "Scanning repository..."
+    print("Scanning repository...")
     
     hotspots = b.get_hotspots()
-    print "Found %d hot spots\n" % len(hotspots)
+    print("Found %d hot spots\n" % len(hotspots))
     
     for hotspot in hotspots:
-        print " %6.3f %s" % (hotspot.score, hotspot.filename)
+        print(" %6.3f %s" % (hotspot.score, hotspot.filename))
