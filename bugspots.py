@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 # vim: set expandtab tabstop=4 shiftwidth=4 textwidth=79
+
 """
 Bugspots is a Python implementation of the bug prediction algorithm used at
 Google and it embed a command-line interface.
@@ -9,7 +10,6 @@ Google and it embed a command-line interface.
 from __future__ import division
 
 import subprocess
-import itertools
 import collections
 import os
 import math
@@ -18,6 +18,14 @@ import operator
 __author__ = "A.B."
 __version__ = "0.1"
 __license__ = "ISC License"
+
+
+def get_output(*args, **kwargs):
+    """
+    Retrieves the output from subprocess.check_output readily converted to a
+    string. All arguments will be passed through.
+    """
+    return subprocess.check_output(*args, **kwargs).decode()
 
 
 class Bunch(object):
@@ -78,22 +86,22 @@ class Bugspots(object):
 
         """
         head_filenames = set(
-            subprocess.check_output(["git", "ls-tree", "HEAD", "--name-only",
-                                     "-r"]).strip().split("\n"))
+            get_output(["git", "ls-tree", "HEAD", "--name-only",
+                        "-r"]).strip().split("\n"))
 
         files = collections.defaultdict(list)
         popenargs = ["git", "log", "-%d" % self._depth, "--format=format:%ct",
                      "--name-only", "-E", "-i", "--grep=%s" % self._grep,
                      "--diff-filter=ACDMRTUXB"]
 
-        for commit in subprocess.check_output(popenargs).strip().split("\n\n"):
+        for commit in get_output(popenargs).strip().split("\n\n"):
+            print(commit)
             data = commit.split("\n")
             commit_date, filenames = data[0], set(data[1:])
-            for filename in itertools.ifilter(lambda s: s in head_filenames,
-                                              filenames):
+            for filename in filter(lambda s: s in head_filenames, filenames):
                 files[filename].append(int(commit_date))
 
-        return [File(name=k, commit_dates=v) for k, v in files.iteritems()]
+        return [File(name=k, commit_dates=v) for k, v in files.items()]
 
     def _get_score(self, f, repo_start, repo_age):
         """
@@ -121,10 +129,10 @@ class Bugspots(object):
         prev_path = os.getcwd()
         os.chdir(self._path)
 
-        repo_start = int(subprocess.check_output(
+        repo_start = int(get_output(
             ["git", "log", "-1", "--format=%ct", "-E", "-i",
              "--grep=%s" % self._grep, "--diff-filter=ACDMRTUXB"]) or -1)
-        repo_end = int(subprocess.check_output(
+        repo_end = int(get_output(
             ["git", "log", "-%d" % self._depth, "--format=%ct", "-E", "-i",
              "--grep=%s" % self._grep, "--diff-filter=ACDMRTUXB",
              "--reverse"]).split("\n")[0] or -1)
