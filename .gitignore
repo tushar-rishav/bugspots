@@ -3,3 +3,4 @@ bugspots.egg-info/
 dist/
 *.pyc
 MANIFEST
+.idea
